@@ -38,6 +38,9 @@ import org.apache.lucene.analysis.TokenStream; // for javadocs
  * that type is already present. If yes, it returns the instance, otherwise
  * it creates a new instance and returns it.
  */
+/**
+AttributeSource中保存的是AttributeImpl的集合，放在一个Map集合中
+*/
 public class AttributeSource {
   
   /**

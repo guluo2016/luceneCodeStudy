@@ -70,6 +70,9 @@ public class Field implements IndexableField {
   /**
    * Field's type
    */
+  /**
+  这里的type用于声明Field是属性
+  **/
   protected final IndexableFieldType type;
 
   /**
@@ -609,6 +612,11 @@ public class Field implements IndexableField {
   }
 
   /** Specifies whether and how a field should be stored. */
+  /**
+  Field.Store.YES:表示存储该field
+  Field.Store.NO：表示不存储该Field
+  Field.Store总是和XXXField结合使用
+  **/
   public static enum Store {
 
     /** Store the original field value in the index. This is useful for short texts

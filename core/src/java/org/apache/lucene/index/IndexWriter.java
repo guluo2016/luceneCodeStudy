@@ -210,6 +210,10 @@ import static org.apache.lucene.search.DocIdSetIterator.NO_MORE_DOCS;
  * referenced by the "front" of the index). For this, IndexFileDeleter
  * keeps track of the last non commit checkpoint.
  */
+
+/**
+IndexWriter用于创建、维护索引
+**/
 public class IndexWriter implements Closeable, TwoPhaseCommit, Accountable,
     MergePolicy.MergeContext {
 

@@ -24,6 +24,10 @@ package org.apache.lucene.util;
  * Attributes are used to add data in a dynamic, yet type-safe way to a source
  * of usually streamed objects, e. g. a {@link org.apache.lucene.analysis.TokenStream}.
  */
+/**
+一个可以往AttributeSource中添加的基类
+AttributeSource中实际上就是保存着AttributeImpl的一个集合
+**/
 public abstract class AttributeImpl implements Cloneable, Attribute {  
   /**
    * Clears the values in this AttributeImpl and resets it to its 

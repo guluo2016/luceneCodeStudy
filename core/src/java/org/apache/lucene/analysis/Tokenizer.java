@@ -31,6 +31,14 @@ import org.apache.lucene.util.AttributeSource;
   call {@link AttributeSource#clearAttributes()} before
   setting attributes.
  */
+  /**
+  分词器，用于进行分词处理
+  分词的具体逻辑在incrementToken(),这个方法在其父类TokenStream中定义，但是Tokenizer中并未实现，会在其子类中实现分词逻辑
+  当我们自定义分词器时，需要继承Tokenizer类，并重写incrementToken()，实现自定义分词逻辑
+
+
+  分词器中使用Reader来保存需要分词的流数据，保存成的是字节流input
+  **/
 public abstract class Tokenizer extends TokenStream {  
   /** The text source for this Tokenizer. */
   protected Reader input = ILLEGAL_STATE_READER;
@@ -93,6 +101,20 @@ public abstract class Tokenizer extends TokenStream {
     setReaderTestPoint();
   }
   
+  /**
+  目的就是为了重置TokenStream流
+  Tokenizer重写了reset()方法，首先调用父类的reset()方法，重置TokenStream流
+  然后将Reader流赋给input，至此Tokenizer中才真正将text对应的字符流封装起来
+
+  
+  为什么会调用这个方法：
+  在分词之前，这个Reader流可能会被使用，因此指向当前字符的指针也会不停的变化，当我们重新进行分词时，如果当前指针可能不是放在流的起始位置，而是可能在任意
+  位置，为了避免这个问题，在分词之前首先调用一下reset()方法，从而保证这个当前指针在使用的时候是放在流的起始位置的
+
+  这个方法总是在incrementToken()方法被调用之前，被调用。在调用这个方法之前，Reader流是暂时放在inputPending中的
+  调用reset()方法之后，就开始调用incrementToken()进行分词了
+  在incrementToken()内部，会通过该intput获取reader流，并给予该流进行分词
+  **/
   @Override
   public void reset() throws IOException {
     super.reset();

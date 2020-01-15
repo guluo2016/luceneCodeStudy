@@ -43,7 +43,7 @@ public interface IndexableField {
    * Creates the TokenStream used for indexing this field.  If appropriate,
    * implementations should use the given Analyzer to create the TokenStreams.
    *
-   * @param analyzer Analyzer that should be used to create the TokenStreams from
+   TokenStream* @param analyzer Analyzer that should be used to create the TokenStreams from
    * @param reuse TokenStream for a previous instance of this field <b>name</b>. This allows
    *              custom field types (like StringField and NumericField) that do not use
    *              the analyzer to still have good performance. Note: the passed-in type

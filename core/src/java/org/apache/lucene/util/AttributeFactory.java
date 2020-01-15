@@ -25,6 +25,10 @@ import java.lang.reflect.UndeclaredThrowableException;
 /**
  * An AttributeFactory creates instances of {@link AttributeImpl}s.
  */
+/**
+工厂，用于创建AttributeImpl
+默认情况下使用AttributeFactory的实现类StaticImplementationAttributeFactory作为工厂对象
+**/
 public abstract class AttributeFactory {
   
   /**

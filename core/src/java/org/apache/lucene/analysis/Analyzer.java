@@ -187,6 +187,9 @@ public abstract class Analyzer implements Closeable {
    * @throws AlreadyClosedException if the Analyzer is closed.
    * @see #tokenStream(String, Reader)
    */
+  /**
+  调用这个方法，会将text进行分词，并返回分词后的数据流，里面包含分词信息
+  **/
   public final TokenStream tokenStream(final String fieldName, final String text) {
     TokenStreamComponents components = reuseStrategy.getReusableComponents(this, fieldName);
     @SuppressWarnings("resource") final ReusableStringReader strReader = 
@@ -362,6 +365,14 @@ public abstract class Analyzer implements Closeable {
    * {@link TokenStream} returned by
    * {@link Analyzer#tokenStream(String, Reader)}.
    */
+  /**
+  内部类
+  对分词器Tokenizer进行封装
+  对分词流进行封装：分词器处理完之后，形成一个分词流，里面包含各种分词信息
+
+  这个类在基于Analyzer对象调用tokenStream()方法时，该方法会调用createComponents()方法时会被实例化
+  createComponents()方法需要被重写，继承Analyzer时重写
+  **/
   public static class TokenStreamComponents {
     /**
      * Original source of the tokens.

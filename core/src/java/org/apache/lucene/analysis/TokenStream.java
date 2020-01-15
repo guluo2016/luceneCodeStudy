@@ -148,6 +148,13 @@ public abstract class TokenStream extends AttributeSource implements Closeable {
    * 
    * @return false for end of stream; true otherwise
    */
+  /**
+  实现分词
+  所有分词器都必须继承Tokenizer并且重写这个方法，实现一套分词逻辑
+
+  由于该方法的返回值boolean，因此对于分词的结果，需要一个公共对象进行存放，以便于后期获取分词结果
+  这个存放分词结果的对象就是AttributeImpl和Attribute的实现类
+  **/
   public abstract boolean incrementToken() throws IOException;
   
   /**
