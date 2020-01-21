@@ -103,19 +103,33 @@ final class FreqProxTermsWriterPerField extends TermsHashPerField {
     freqProxPostingsArray.lastOffsets[termID] = startOffset;
   }
 
+
+
+  /**
+  Lucene构建倒排索引的过程分了两步操作，构建Postings和TermVectors。它们俩过程共享一个ByteBlockPool，也就是在每个
+  DocumentsWriter 共用同一个ByteRefHash（因为BytesRefHash以ByteBlockPool都不是线程安全的）。 它为Postings收集过程提供
+  去重和Term与TermID对应关系的存储及检索等功能。
+  **/
   @Override
   void newTerm(final int termID) {
     // First time we're seeing this term since the last
     // flush
     final FreqProxPostingsArray postings = freqProxPostingsArray;
 
+    /**
+    建立term到文件的映射关系
+    **/
     postings.lastDocIDs[termID] = docState.docID;
+
+    //hasFreq表示是否需要记录词频，false时不需要记录词频
     if (!hasFreq) {
       assert postings.termFreqs == null;
       postings.lastDocCodes[termID] = docState.docID;
       fieldState.maxTermFrequency = Math.max(1, fieldState.maxTermFrequency);
     } else {
       postings.lastDocCodes[termID] = docState.docID << 1;
+
+      //用于记录词频
       postings.termFreqs[termID] = getTermFreq();
       if (hasProx) {
         writeProx(termID, fieldState.position);
@@ -140,6 +154,12 @@ final class FreqProxTermsWriterPerField extends TermsHashPerField {
       if (termFreqAtt.getTermFrequency() != 1) {
         throw new IllegalStateException("field \"" + fieldInfo.name + "\": must index term freq while using custom TermFrequencyAttribute");
       }
+
+      /**
+      这个地方是判断当前的docID与lastDocIDs[termID]是否一致
+      如果一致，说明当前的文档还没有处理完，需要继续处理
+      如果不一致，那么说明当前上一个文档中的term已经处理完了，需要做一些其他操作
+      **/
       if (docState.docID != postings.lastDocIDs[termID]) {
         // New document; now encode docCode for previous doc:
         assert docState.docID > postings.lastDocIDs[termID];
@@ -178,10 +198,14 @@ final class FreqProxTermsWriterPerField extends TermsHashPerField {
       }
       fieldState.uniqueTermCount++;
     } else {
+      //当文档号没有发生变化时，这个term又出现了一次，说明词频有加1
       postings.termFreqs[termID] = Math.addExact(postings.termFreqs[termID], getTermFreq());
       fieldState.maxTermFrequency = Math.max(fieldState.maxTermFrequency, postings.termFreqs[termID]);
       if (hasProx) {
+
         writeProx(termID, fieldState.position-postings.lastPositions[termID]);
+        
+        //是否需要记录偏移信息
         if (hasOffsets) {
           writeOffsets(termID, fieldState.offset);
         }
@@ -215,6 +239,9 @@ final class FreqProxTermsWriterPerField extends TermsHashPerField {
     return new FreqProxPostingsArray(size, hasFreq, hasProx, hasOffsets);
   }
 
+  /**
+  用于存储倒排索引
+  **/
   static final class FreqProxPostingsArray extends ParallelPostingsArray {
     public FreqProxPostingsArray(int size, boolean writeFreqs, boolean writeProx, boolean writeOffsets) {
       super(size);
@@ -234,9 +261,14 @@ final class FreqProxTermsWriterPerField extends TermsHashPerField {
       //System.out.println("PA init freqs=" + writeFreqs + " pos=" + writeProx + " offs=" + writeOffsets);
     }
 
+    //记录term的在当前文档中的词频----docID
     int termFreqs[];                                   // # times this term occurs in the current doc
+
+    //上一个出现这个term的文档ID
     int lastDocIDs[];                                  // Last docID where this term occurred
+
     int lastDocCodes[];                                // Code for prior doc
+
     int lastPositions[];                               // Last position where this term occurred
     int lastOffsets[];                                 // Last endOffset where this term occurred
 

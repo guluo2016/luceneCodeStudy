@@ -42,6 +42,10 @@ import static org.apache.lucene.util.ByteBlockPool.BYTE_BLOCK_SIZE;
  * 
  * @lucene.internal
  */
+/**
+在这里构建一个自定义Hash表
+这个Hash表中包含一个Ids的int数组和一个特殊自定义数组ByteStartArray
+**/
 public final class BytesRefHash {
 
   public static final int DEFAULT_CAPACITY = 16;
@@ -85,6 +89,8 @@ public final class BytesRefHash {
     hashMask = hashSize - 1;
     this.pool = pool;
     ids = new int[hashSize];
+
+    //初始情况下，ids中的所有元素值均为-1
     Arrays.fill(ids, -1);
     this.bytesStartArray = bytesStartArray;
     bytesStart = bytesStartArray.init();
@@ -250,13 +256,34 @@ public final class BytesRefHash {
    *           if the given bytes are {@code > 2 +}
    *           {@link ByteBlockPool#BYTE_BLOCK_SIZE}
    */
+
+
+  /**
+  BytesRefHash
+  Lucene在构建Postings的时候， 采用一种类似HashMap结构，这个类HashMap的结构便是BytesRefHash,它是一个非通用的Map实现。 
+  它的非通用性表现在BytesRefHash存储的键值对分别是Term和TermID，其次它并没有实现Map接口，也没有实现Map的相关操作。
+
+  Term在Lucene中通常会被表示为BytesRef，而BytesRef的内部是一个byte[]，这是一个可以复用的对象。当通过TermID在BytesRefHash
+  获取词元的时候，便将ByteBlockPool的byte[]拷贝到BytesRef的byte[]，同时指定有效长度。整个BytesRefHash生存周期中仅持有一个
+  BytsRef，所以该BytesRef的byte[]长度是词元的长度。
+
+  BytesRefHash用来存储Term和TermID之间的映射关系，如果Term已经存在，返回对应TermID；否则将Term存储并且生成TermID后返回。
+  Term在存储过程BytesRefHash将BytesRef的有效数据拷贝在ByteBlockPool上，从而实现紧凑的key值存储。TermID是从0开始自增长的
+  连续数值，存储在int[]上。BytesRefHash非散列哈希表，从而TermID的存储也是紧凑的。
+
+  因为BytesRefHash为了尽可能避免用到对象类型，所以直接采用int[]存储TermID，实际上也就很难直接采用散列表的数据结构来解决
+  HashCode冲突的问题。
+  **/
   public int add(BytesRef bytes) {
     assert bytesStart != null : "Bytesstart is null - not initialized";
     final int length = bytes.length;
     // final position
     final int hashPos = findHash(bytes);
+
+    //ids中所有元素的初始值为-1
     int e = ids[hashPos];
     
+    //e为-1说明，ids中对应位置之前没有元素，新添加的是term是一个新元素
     if (e == -1) {
       // new entry
       final int len2 = 2 + bytes.length;
@@ -274,19 +301,26 @@ public final class BytesRefHash {
         assert count < bytesStart.length + 1 : "count: " + count + " len: "
             + bytesStart.length;
       }
+
+      //count的初始值是0，代表这个hash表中有多少个term元素
       e = count++;
 
+      //记录了term的开始位置
       bytesStart[e] = bufferUpto + pool.byteOffset;
 
       // We first encode the length, followed by the
       // bytes. Length is encoded as vInt, but will consume
       // 1 or 2 bytes at most (we reject too-long terms,
       // above).
+
+      //terms的长度不能超过2个字节(vInt 数据位14字节，2^14-1)
       if (length < 128) {
         // 1 byte to store length
         buffer[bufferUpto] = (byte) length;
         pool.byteUpto += length + 1;
         assert length >= 0: "Length must be positive: " + length;
+
+        //将term对应的二进制流放到buffer中
         System.arraycopy(bytes.bytes, bytes.offset, buffer, bufferUpto + 1,
             length);
       } else {
@@ -321,14 +355,25 @@ public final class BytesRefHash {
     return ids[findHash(bytes)];
   }
 
+  /**
+  指定BytesRefHash 这个Hash表的Hash算法
+  **/
   private int findHash(BytesRef bytes) {
     assert bytesStart != null : "bytesStart is null - not initialized";
 
+    //得到bytes的hash值
     int code = doHash(bytes.bytes, bytes.offset, bytes.length);
 
     // final position
     int hashPos = code & hashMask;
+    
+
+    //ids初始值为各个元素都为-1
     int e = ids[hashPos];
+
+
+    //这里说明，ids中对应位置已经有值存在了，需要进行冲突处理
+    //冲突然处理的办法就是，code后移意味，再确定位置（Hash表处理冲突的常用方法之一）
     if (e != -1 && !equals(e, bytes)) {
       // Conflict; use linear probe to find an open slot
       // (see LUCENE-5604):

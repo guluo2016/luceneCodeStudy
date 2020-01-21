@@ -148,10 +148,15 @@ abstract class TermsHashPerField implements Comparable<TermsHashPerField> {
     // We are first in the chain so we must "intern" the
     // term text into textStart address
     // Get the text & hash of this term.
+
+    /**
+    terAttr.getBytesRef()方法用户获取分词后的一个word，基于该word获取对应的bytesHash的hash值
+    **/
     int termID = bytesHash.add(termAtt.getBytesRef());
       
     //System.out.println("add term=" + termBytesRef.utf8ToString() + " doc=" + docState.docID + " termID=" + termID);
 
+    //正值，需要新建一个posting
     if (termID >= 0) {// New posting
       bytesHash.byteStart(termID);
       // Init stream slices
@@ -178,6 +183,7 @@ abstract class TermsHashPerField implements Comparable<TermsHashPerField> {
       newTerm(termID);
 
     } else {
+      //直接往posting中添加即可
       termID = (-termID)-1;
       int intStart = postingsArray.intStarts[termID];
       intUptos = intPool.buffers[intStart >> IntBlockPool.INT_BLOCK_SHIFT];

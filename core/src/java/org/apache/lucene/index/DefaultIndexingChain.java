@@ -438,6 +438,9 @@ final class DefaultIndexingChain extends DocConsumer {
     }
 
     // Add stored fields:
+    /**
+    如果文档中对应域的值的话，会调用这段逻辑
+    **/
     if (fieldType.stored()) {
       if (fp == null) {
         fp = getOrAddField(fieldName, fieldType, false);
@@ -790,6 +793,9 @@ final class DefaultIndexingChain extends DocConsumer {
         invertState.setAttributeSource(stream);
         termsHashPerField.start(field, first);
 
+        /**
+        調用increment()方法，进行分词，
+        **/
         while (stream.incrementToken()) {
 
           // If we hit an exception in stream.next below
@@ -816,7 +822,10 @@ final class DefaultIndexingChain extends DocConsumer {
           if (posIncr == 0) {
             invertState.numOverlap++;
           }
-              
+          
+          /**
+          获取每个分词的具体信息，包括他的起始位置，结束位置等等
+          **/
           int startOffset = invertState.offset + invertState.offsetAttribute.startOffset();
           int endOffset = invertState.offset + invertState.offsetAttribute.endOffset();
           if (startOffset < invertState.lastStartOffset || endOffset < startOffset) {
@@ -840,6 +849,9 @@ final class DefaultIndexingChain extends DocConsumer {
           // corrupt and should not be flushed to a
           // new segment:
           try {
+            /**
+            将分词加入到倒排索引当中
+            **/
             termsHashPerField.add();
           } catch (MaxBytesLengthExceededException e) {
             byte[] prefix = new byte[30];
