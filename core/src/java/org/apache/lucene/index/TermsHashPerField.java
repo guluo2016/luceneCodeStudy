@@ -150,7 +150,9 @@ abstract class TermsHashPerField implements Comparable<TermsHashPerField> {
     // Get the text & hash of this term.
 
     /**
-    terAttr.getBytesRef()方法用户获取分词后的一个word，基于该word获取对应的bytesHash的hash值
+    terAttr.getBytesRef()方法用户获取分词后的一个word，基于该word获取对应的bytesHash的hash值,
+    termAtt中存放的就是分词后的信息
+    termAtt.getBytesRef()即获取对应的值，以字节数组形式存在
     **/
     int termID = bytesHash.add(termAtt.getBytesRef());
       

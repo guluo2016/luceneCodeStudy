@@ -277,10 +277,13 @@ public final class BytesRefHash {
   public int add(BytesRef bytes) {
     assert bytesStart != null : "Bytesstart is null - not initialized";
     final int length = bytes.length;
+
     // final position
+    //获取分词的hash值
     final int hashPos = findHash(bytes);
 
     //ids中所有元素的初始值为-1
+    //如果不是-1，那么说明对应hash表中已经有存放有元素了。需要进行冲突处理
     int e = ids[hashPos];
     
     //e为-1说明，ids中对应位置之前没有元素，新添加的是term是一个新元素
