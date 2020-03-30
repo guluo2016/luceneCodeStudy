@@ -117,7 +117,7 @@ final class FreqProxTermsWriterPerField extends TermsHashPerField {
     final FreqProxPostingsArray postings = freqProxPostingsArray;
 
     /**
-    建立term到文件的映射关系
+    记录term和docID的对应关系
     **/
     postings.lastDocIDs[termID] = docState.docID;
 
@@ -132,6 +132,14 @@ final class FreqProxTermsWriterPerField extends TermsHashPerField {
       //用于记录词频
       postings.termFreqs[termID] = getTermFreq();
       if (hasProx) {
+        /**
+        位置信息是相对于每一个Field而言的
+        例如：
+        doc: desc1: lucene good lucene
+             desc2 : lucene useful
+        对于该文档而言，在写入位置信息的时候，就field为desc1，会有lucene的位置信息0,2
+        就field为desc2，会有lucene的位置信息为0
+        **/
         writeProx(termID, fieldState.position);
         if (hasOffsets) {
           writeOffsets(termID, fieldState.offset);
@@ -173,6 +181,16 @@ final class FreqProxTermsWriterPerField extends TermsHashPerField {
       // Term not yet seen in the current doc but previously
       // seen in other doc(s) since the last flush
 
+
+      /**
+      以文档为单位，记录term的倒排信息：docID、在文档中的位置信息、词频
+      结构基本上就是如下
+      
+       ——
+      |2|  -> {docId=2,freq=2,position=2} -> {docId=5,freq=1,position=5} -> ...  
+       ——
+
+      **/
       // Now that we know doc freq for previous doc,
       // write it & lastDocCode
       if (1 == postings.termFreqs[termID]) {

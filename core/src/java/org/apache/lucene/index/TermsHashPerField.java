@@ -48,6 +48,8 @@ abstract class TermsHashPerField implements Comparable<TermsHashPerField> {
 
   protected final FieldInfo fieldInfo;
 
+
+  //内部维护一个hash表
   final BytesRefHash bytesHash;
 
   ParallelPostingsArray postingsArray;
@@ -55,7 +57,6 @@ abstract class TermsHashPerField implements Comparable<TermsHashPerField> {
 
   /** streamCount: how many streams this field stores per term.
    * E.g. doc(+freq) is 1 stream, prox+offset is a second. */
-
   public TermsHashPerField(int streamCount, FieldInvertState fieldState, TermsHash termsHash, TermsHashPerField nextPerField, FieldInfo fieldInfo) {
     intPool = termsHash.intPool;
     bytePool = termsHash.bytePool;
@@ -122,12 +123,19 @@ abstract class TermsHashPerField implements Comparable<TermsHashPerField> {
       intUptoStart = intPool.intUpto;
       intPool.intUpto += streamCount;
 
+      /**
+      记录term的的位置信息
+      **/
       postingsArray.intStarts[termID] = intUptoStart + intPool.intOffset;
 
       for(int i=0;i<streamCount;i++) {
         final int upto = bytePool.newSlice(ByteBlockPool.FIRST_LEVEL_SIZE);
         intUptos[intUptoStart+i] = upto + bytePool.byteOffset;
       }
+
+      /**
+      记录term的docID，freq
+      **/
       postingsArray.byteStarts[termID] = intUptos[intUptoStart];
 
       newTerm(termID);
