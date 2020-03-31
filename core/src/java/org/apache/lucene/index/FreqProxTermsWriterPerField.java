@@ -76,6 +76,12 @@ final class FreqProxTermsWriterPerField extends TermsHashPerField {
   }
 
   void writeProx(int termID, int proxCode) {
+
+    /**
+    term的位置信息proxCode最终写入的时候，会向左移位1，
+    因此如果位置为1，那么最终存储的数据时2
+    位置为2，最终存储的数据是4（4 = 2<<1）
+    **/
     if (payloadAttribute == null) {
       writeVInt(1, proxCode<<1);
     } else {
