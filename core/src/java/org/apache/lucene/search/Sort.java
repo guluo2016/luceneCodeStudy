@@ -100,6 +100,12 @@ import java.util.Arrays;
 public class Sort {
 
   /**
+  Sort用于进行排序
+  默认情况下，在进行检索的时候，检索的结果需要按照某种顺序来进行显示，
+  这个时候实际上就是Sort起作用
+  **/
+
+  /**
    * Represents sorting by computed relevance. Using this sort criteria returns
    * the same results as calling
    * {@link IndexSearcher#search(Query,int) IndexSearcher#search()}without a sort criteria,

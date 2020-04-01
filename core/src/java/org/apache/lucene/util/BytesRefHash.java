@@ -52,7 +52,17 @@ public final class BytesRefHash {
 
   // the following fields are needed by comparator,
   // so package private to prevent access$-methods:
+  /**
+  存储的是term的真是值（先存储一个term的length，紧接着就是term的原始值）
+  
+  ByteBlockPool内部维护一个数据，term的信息实际上就是存储在这里的：buffer
+  **/
   final ByteBlockPool pool;
+
+  /**
+  记录的是pool中的索引数据，指向每一个term在pool中buffer的起始位置
+  byterStart的数组下标和termID对应
+  **/
   int[] bytesStart;
 
   private final BytesRef scratch1 = new BytesRef();
@@ -275,6 +285,7 @@ public final class BytesRefHash {
   HashCode冲突的问题。
   **/
   public int add(BytesRef bytes) {
+    //bytes就是term的字节表示
     assert bytesStart != null : "Bytesstart is null - not initialized";
     final int length = bytes.length;
 
@@ -331,6 +342,10 @@ public final class BytesRefHash {
         buffer[bufferUpto] = (byte) (0x80 | (length & 0x7f));
         buffer[bufferUpto + 1] = (byte) ((length >> 7) & 0xff);
         pool.byteUpto += length + 2;
+
+        /**
+        将term的字节数据拷贝到pool中的buffer中去
+        **/
         System.arraycopy(bytes.bytes, bytes.offset, buffer, bufferUpto + 2,
             length);
       }
@@ -367,6 +382,7 @@ public final class BytesRefHash {
     //得到bytes的hash值
     int code = doHash(bytes.bytes, bytes.offset, bytes.length);
 
+    //进行与操作，按位进行与操作
     // final position
     int hashPos = code & hashMask;
     

@@ -40,6 +40,18 @@ import org.apache.lucene.util.Version;
  *
  * @lucene.experimental
  */
+
+/**
+从api上摘抄的
+The active segments in the index are stored in the segment info file, segments_N. 
+There may be one or more segments_N files in the index; 
+however, the one with the largest generation is the active one (when older segments_N files are present it's 
+because they temporarily cannot be deleted, or a custom IndexDeletionPolicy is in use). 
+This file lists each segment by name and has details about the codec and generation of deletes
+
+大致意思就是，SegmentInfo用于segment信息，这里面存储的就是有效的segment
+一个索引里可能有多个segment，但是以哪个为准，这实在SegmentInfo中存储的
+**/
 public final class SegmentInfo {
   
   // TODO: remove these from this class, for now this is the representation

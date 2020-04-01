@@ -90,6 +90,11 @@ final class DefaultIndexingChain extends DocConsumer {
       storedFieldsConsumer = new SortingStoredFieldsConsumer(docWriter);
       termVectorsWriter = new SortingTermVectorsConsumer(docWriter);
     }
+
+    /**
+    by 孤落
+
+    **/
     termsHash = new FreqProxTermsWriter(docWriter, termVectorsWriter);
   }
 
@@ -389,6 +394,10 @@ final class DefaultIndexingChain extends DocConsumer {
     termsHash.startDocument();
 
     startStoredFields(docState.docID);
+
+    /**
+    在这里，调用for循环，逐个处理文档中的每一个Field
+    **/
     try {
       for (IndexableField field : docState.doc) {
         fieldCount = processField(field, fieldGen, fieldCount);

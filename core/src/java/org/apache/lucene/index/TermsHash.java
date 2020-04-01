@@ -35,8 +35,19 @@ abstract class TermsHash {
 
   final TermsHash nextTermsHash;
 
+  //存储的是指针，指向bytepool的起始位置
   final IntBlockPool intPool;
+
+  /**
+  针对每一个term（同一个Field），均会在bytepool中为其分配两段连续的内存区域，在lucene中称之为slice
+  第一个slice用于存储term的原始数据(以ascII码方式进行存储)、term的文档id、term的词频(同一个Filed而言)
+  第二个slice用于存储term的位置信息，在同一个filed中，每出现一次，均在bytepool中占用一个byte，里面存储的是位置信息左移一位后的数据
+  **/
   final ByteBlockPool bytePool;
+
+  /**
+  从下面的构造方法可以看出来，termbytePool中存储的数据和bytepool中是一样的
+  **/
   ByteBlockPool termBytePool;
   final Counter bytesUsed;
 
@@ -44,6 +55,7 @@ abstract class TermsHash {
 
   final boolean trackAllocations;
 
+  
   TermsHash(final DocumentsWriterPerThread docWriter, boolean trackAllocations, TermsHash nextTermsHash) {
     this.docState = docWriter.docState;
     this.trackAllocations = trackAllocations; 
