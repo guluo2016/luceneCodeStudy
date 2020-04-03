@@ -147,9 +147,13 @@ final class DefaultIndexingChain extends DocConsumer {
     if (docState.infoStream.isEnabled("IW")) {
       docState.infoStream.message("IW", ((System.nanoTime()-t0)/1000000) + " msec to write points");
     }
-    
+      
+
     // it's possible all docs hit non-aborting exceptions...
     t0 = System.nanoTime();
+     /**
+    往fdx fdt文件中写数据
+    **/
     storedFieldsConsumer.finish(maxDoc);
     storedFieldsConsumer.flush(state, sortMap);
     if (docState.infoStream.isEnabled("IW")) {
@@ -232,9 +236,11 @@ final class DefaultIndexingChain extends DocConsumer {
 
   /** Writes all buffered doc values (called from {@link #flush}). */
   private void writeDocValues(SegmentWriteState state, Sorter.DocMap sortMap) throws IOException {
+    //这个地方，获取的是当前生效的segment号码，实际上就是号码最大的那个为当前有效的segment
     int maxDoc = state.segmentInfo.maxDoc();
     DocValuesConsumer dvConsumer = null;
     boolean success = false;
+    //filedHash表中存储的就是当前的索引中包含的所有Field信息
     try {
       for (int i=0;i<fieldHash.length;i++) {
         PerField perField = fieldHash[i];

@@ -469,9 +469,20 @@ public final class CompressingStoredFieldsWriter extends StoredFieldsWriter {
     if (docBase != numDocs) {
       throw new RuntimeException("Wrote " + docBase + " docs, finish called with numDocs=" + numDocs);
     }
+
+    /**
+    这个方法的目的就是往fdx文件中写入数据
+    **/
     indexWriter.finish(numDocs, fieldsStream.getFilePointer());
     fieldsStream.writeVLong(numChunks);
     fieldsStream.writeVLong(numDirtyChunks);
+
+
+    /**
+    fieldsStream = directory.createOutput(IndexFileNames.segmentFileName(segment, segmentSuffix, FIELDS_EXTENSION)
+    FIELDS_EXTENSION=fdt
+    最终将数据写入到fd文件中
+    **/
     CodecUtil.writeFooter(fieldsStream);
     assert bufferedDocs.getPosition() == 0;
   }
